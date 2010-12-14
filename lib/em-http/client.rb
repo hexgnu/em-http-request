@@ -382,12 +382,17 @@ module EventMachine
         head['origin'] = @options[:origin] || @uri.host
 
       else
-        # Set the Content-Length if file is given
-        head['content-length'] = File.size(file) if file
-
-        # Set the Content-Length if body is given
-        head['content-length'] =  body.bytesize if body
-
+        
+        # Setting content-length for multiparts etc
+        head['content-length'] = case
+        when file && body
+          File.size(file) + body.bytesize
+        when file 
+          File.size(file)
+        when body
+          body.bytesize
+        end
+        
         # Set the cookie header if provided
         if cookie = head.delete('cookie')
           head['cookie'] = encode_cookie(cookie)
@@ -396,6 +401,10 @@ module EventMachine
         # Set content-type header if missing and body is a Ruby hash
         if not head['content-type'] and options[:body].is_a? Hash
           head['content-type'] = "application/x-www-form-urlencoded"
+        end
+        
+        if options[:body] && options[:file]
+          head['content-type'] = "multipart/form-data"
         end
       end
 
@@ -416,11 +425,16 @@ module EventMachine
     end
 
     def send_request_body
-      if @options[:body]
+      case
+      when @options[:body] && @options[:file]
+        multipart = Multipart.new
+        foo = multipart.build_stream(@options.reject {|k,v| [:redirects, :timeout].include?(k)})
+       puts foo.read
+        stream_file_data "/Users/matthewkirk/Desktop/foo.asdf", :http_chunks => false
+      when @options[:body]
         body = normalize_body
         send_data body
-        return
-      elsif @options[:file]
+      when @options[:file]
         stream_file_data @options[:file], :http_chunks => false
       end
     end

@@ -5,6 +5,7 @@
 #++
 
 require 'eventmachine'
+require 'mime/types'
 require 'socket'
 
 require File.dirname(__FILE__) + '/http11_client'
@@ -19,3 +20,5 @@ require File.dirname(__FILE__) + '/em-http/request'
 require File.dirname(__FILE__) + '/em-http/decoders'
 require File.dirname(__FILE__) + '/em-http/http_options'
 require File.dirname(__FILE__) + '/em-http/mock'
+require File.dirname(__FILE__) + '/em-http/multipart'
+require File.dirname(__FILE__) + '/em-http/mime_types'
